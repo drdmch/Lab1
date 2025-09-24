@@ -1,0 +1,16 @@
+#pragma once
+
+#include <random>
+#include <utility>
+
+class RandomCell {
+private:
+    int board_size = 0;
+    mutable std::mt19937 generator;
+    std::uniform_int_distribution<int> distribution;
+
+public:
+    explicit RandomCell(int n);
+    std::pair<int, int> operator()() const;
+    int getSize() const;
+};
