@@ -7,7 +7,7 @@ class RandomCell {
 private:
     int board_size = 0;
     mutable std::mt19937 generator;
-    std::uniform_int_distribution<int> distribution;
+    mutable std::uniform_int_distribution<int> distribution; //mutable бо () є конст, а дістрібюшн змінює стан
 
 public:
     explicit RandomCell(int n);
