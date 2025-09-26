@@ -3,12 +3,12 @@
 #include <vector>
 #include <utility>
 
-const int ALL_SIDES = 8; //¬ключаЇмо сюди д≥агональн≥
+const int ALL_SIDES = 8; 
 const int ONLY_VERTICAL_HORIZONTAL = 4;
 
 class Board {
 public:
-	explicit Board(int n);
+	explicit Board(int size);
 
 	std::size_t free_zona_size(const std::vector<std::pair<int, int>>& selected,
 		int adj = ALL_SIDES) const;

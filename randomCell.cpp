@@ -13,9 +13,12 @@ RandomCell::RandomCell(int n) : boardSize(n), distribution(0, n - 1) {
     }
 
 std::pair<int, int> RandomCell::operator()() const {
-    int cellIndex = distribution(generator);
-    int row = cellIndex / boardSize;
-    int col = cellIndex % boardSize;
+   
+    if (board_size == 1) {
+        return { 0, 0 };
+    }
+    int row = distribution(generator);
+    int col = distribution(generator);
     return {row, col};
 }
 
