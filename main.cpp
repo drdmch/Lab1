@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <stdexcept>
+#include <string>
 #include "board.h"
 #include "randomCell.h"
 
@@ -12,25 +13,57 @@ struct ExperimentParameters {
     int k_max{};
 };
 
+int get_int_input(const std::string& prompt, int min_value = 0, int max_value = INT_MAX) {
+    int value;
+    std::cout << prompt;
+    std::cin >> value;
+
+    if (std::cin.fail()) {
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        throw std::invalid_argument("Invalid input. Please enter a valid number.");
+    }
+
+    if (value < min_value || value > max_value) {
+        throw std::invalid_argument("Input must be between " + std::to_string(min_value) + " and " + std::to_string(max_value) + ".");
+    }
+
+    return value;
+}
+
 ExperimentParameters get_user_input() {
     ExperimentParameters p;
 
-    std::cout << "Enter board size: " << std::endl;
-    std::cin >> p.boardSize;
-    if (!(std::cin >> p.boardSize)) throw std::invalid_argument("Invalid input for board size.");
-    if (p.boardSize <= 0) throw std::invalid_argument("Board size must be positive.");
+    p.boardSize = get_int_input("Enter board size: ", 1);
 
-    std::cout << "Enter number of experiments: ";
-    std::cin >> p.numExperiments;
-    if (!(std::cin >> p.numExperiments)) throw std::invalid_argument("Invalid input for number of experiments.");
-    if (p.numExperiments <= 0) throw std::invalid_argument("Number of experiments must be positive.");
+    p.numExperiments = get_int_input("Enter number of experiments: ", 1);
 
-    std::cout << "Enter k_min and k_max: ";
-    std::cin >> p.k_min >> p.k_max;
-    if (!(std::cin >> p.k_min >> p.k_max)) throw std::invalid_argument("Invalid input for k_min/k_max.");
-    if (p.k_min < 0 || p.k_max < 0) throw std::invalid_argument("k_min and k_max must be >= 0.");
-    if (p.k_min > p.k_max) throw std::invalid_argument("k_min should be <= k_max.");
-    if (p.k_max > p.boardSize*p.boardSize) throw std::invalid_argument("k_max cannot be > total number od cells.");
+    while (true) {
+        std::cout << "Enter k_min and k_max: ";
+        std::cin >> p.k_min >> p.k_max;
+
+        if (std::cin.fail()) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            std::cerr << "Invalid input for k_min/k_max. Please enter valid numbers.\n";
+            continue;
+        }
+
+        if (p.k_min < 0 ||  p.k_max < 0) {
+            std::cerr << "k_min and k_max must be >= 0.\n";
+            continue;
+        }
+        if (p.k_min > p.k_max) {
+            std::cerr << "k_min should be <= k_max.\n";
+            continue;
+        }
+        if (p.k_max > p.boardSize * p.boardSize) {
+            std::cerr << "k_max cannot be greater than the total number of cells.\n";
+            continue;
+        }
+
+        break;
+    }
 
     return p;
 }
@@ -42,7 +75,7 @@ void run_experiment(const ExperimentParameters& p) {
     resultFile << "k,mean_free_cells,median_free_cells,mean_free_pct,median_free_pct\n";
 
     Board gameBoard(p.boardSize);
-    const double total_cells = static_cast<double>(p.boardSize) * p.boardSize;
+    const long long total_cells = static_cast<double>(p.boardSize) * p.boardSize;
 
     for (int k = p.k_min; k <= p.k_max; ++k) {
         RandomCell cellGenerator(p.boardSize);
@@ -50,7 +83,7 @@ void run_experiment(const ExperimentParameters& p) {
         freeZoneSizes.reserve(static_cast<std::size_t>(p.numExperiments));
 
         for (int experiment = 0; experiment < p.numExperiments; ++experiment) {
-            std::vector<std::pair<int,int>> selectedCells;
+            std::vector<std::pair<int, int>> selectedCells;
             selectedCells.reserve(static_cast<std::size_t>(k));
             for (int i = 0; i < k; ++i) {
                 selectedCells.push_back(cellGenerator());
@@ -59,19 +92,19 @@ void run_experiment(const ExperimentParameters& p) {
             freeZoneSizes.push_back(freeZone);
         }
 
-        const double meanValue   = gameBoard.mean(freeZoneSizes);
+        const double meanValue = gameBoard.mean(freeZoneSizes);
         const double medianValue = gameBoard.median(freeZoneSizes);
-        const double meanPercent     = (meanValue   / total_cells) * 100.0;
-        const double medianPercent   = (medianValue / total_cells) * 100.0;
+        const double meanPercent = (meanValue / total_cells) * 100.0;
+        const double medianPercent = (medianValue / total_cells) * 100.0;
 
         std::cout << "k = " << k
-                  << " -> mean: " << meanValue
-                  << " (" << meanPercent   << "%)"
-                  << ", median: " << medianValue
-                  << " (" << medianPercent << "%)\n";
+            << " -> mean: " << meanValue
+            << " (" << meanPercent << "%)"
+            << ", median: " << medianValue
+            << " (" << medianPercent << "%)\n";
 
         resultFile << k << ',' << meanValue << ',' << medianValue << ','
-                   << meanPercent << ',' << medianPercent << '\n';
+            << meanPercent << ',' << medianPercent << '\n';
     }
 
     std::cout << "\nExperiment completed. Results saved to 'results.csv'." << "\n";
@@ -82,10 +115,12 @@ int main() {
         const ExperimentParameters p = get_user_input();
         run_experiment(p);
         return 0;
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         std::cerr << "ERROR: " << e.what() << "\n";
         return 1;
-    } catch (...) {
+    }
+    catch (...) {
         std::cerr << "Unknown exception.\n";
         return 1;
     }
