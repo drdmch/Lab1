@@ -38,7 +38,7 @@ std::size_t Board::free_zone_size(const std::vector<std::pair<int, int>>& select
     std::vector<unsigned char> blocked(boardSize * boardSize, 0);
 
     for (const auto& [row, col] : selected) {
-        if (row < 0, row >= boardSize, col < 0 || col >= boardSize) {
+        if (row < 0|| row >= boardSize || col < 0 || col >= boardSize) {
             throw std::out_of_range("Selected cell is out of board bounds");
         }
         mark_neighbors(blocked, row, col);
