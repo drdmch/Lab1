@@ -107,9 +107,6 @@ void run_experiment(const ExperimentParameters& p) {
             << meanPercent << ',' << medianPercent << '\n';
     }
 
-    std::cout << "\nExperiment completed. Results saved to 'results.csv'." << "\n";
-}
-
 int main() {
     try {
         const ExperimentParameters p = get_user_input();
